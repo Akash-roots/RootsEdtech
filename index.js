@@ -1,14 +1,24 @@
 require('dotenv').config();
+const path = require('path');
 const express = require('express');
 const app = express();
-const PORT = process.env.PORT || 3000;
-const { swaggerUi, specs } = require('./utils/swagger'); // adjust path
+const http = require('http');
+const { Server } = require('socket.io');
+const { swaggerUi, specs } = require('./utils/swagger');
 
+const PORT = process.env.PORT || 3000;
+const server = http.createServer(app); // Create HTTP server
+const io = new Server(server, { cors: { origin: "*" } }); // Attach Socket.io
+
+// Serve static files (like webrtc.html)
+app.use(express.static(path.join(__dirname, 'public')));
+
+// Load signaling logic
+require('./sockets/webrtcSocket')(io); // Load WebRTC socket handlers
 
 app.use(express.json());
 
-
-// Mount Swagger UI
+// Swagger docs
 app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(specs));
 
 // Routes
@@ -26,11 +36,12 @@ app.use('/teacher', teacherRoutes);
 app.use('/students', studentRoutes);
 app.use('/course', courseRoutes);
 
+// Sync DB if needed
 // sequelize.sync({ alter: true }).then(() => {
 //   console.log('Tables synced!');
 // });
 
-
-app.listen(PORT, () => {
+// ✅ FIXED: Start the server using `server.listen`, not `app.listen`
+server.listen(PORT, () => {
   console.log(`🚀 Server running at http://localhost:${PORT}`);
 });
