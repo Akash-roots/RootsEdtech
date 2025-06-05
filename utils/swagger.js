@@ -19,7 +19,7 @@ const options = {
         },
         security: [{ bearerAuth: [] }],
 
-        servers: [{ url: 'http://localhost:3000' }],
+        servers: [{ url: 'http://10.10.1.23:3000' }],
         // 👇 This controls the group (tag) order in Swagger UI
         tags: [
             {

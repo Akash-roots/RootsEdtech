@@ -6,12 +6,14 @@ const Role = require('../models/Role');
 const authService =  require('../services/auth.service');
 
 exports.login = async (req, res) => {
-  const { username, password } = req.body;
+  console.log("req.body",req.body);
+  
+  const { email, password } = req.body;
 
   try {
     // 👇 Find user by username and include their roles
     const user = await User.findOne({
-      where: { username },
+      where: { email },
       include: Role // many-to-many through user_roles
     });
 

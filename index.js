@@ -5,10 +5,13 @@ const app = express();
 const http = require('http');
 const { Server } = require('socket.io');
 const { swaggerUi, specs } = require('./utils/swagger');
+const cors = require('cors');
+
 
 const PORT = process.env.PORT || 3000;
 const server = http.createServer(app); // Create HTTP server
 const io = new Server(server, { cors: { origin: "*" } }); // Attach Socket.io
+app.use(cors()); // 🔓 Allow all origins (for local dev)
 
 // Serve static files (like webrtc.html)
 app.use(express.static(path.join(__dirname, 'public')));

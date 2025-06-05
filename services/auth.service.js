@@ -8,8 +8,7 @@ exports.registeration = async (data) => {
   const {
     email,
     password,
-    roles = ['student'],
-    status = 'active',
+    roles,
     ...profileData
   } = data;
 
@@ -18,7 +17,7 @@ exports.registeration = async (data) => {
   const user = await User.create({
     email,
     password: hashedPassword,
-    status,
+    status : 'active',
     last_login: null
   });
 

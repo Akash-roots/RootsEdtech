@@ -15,7 +15,7 @@ const authController = require('../controllers/auth.controller');
  *           schema:
  *             type: object
  *             properties:
- *               username:
+ *               email:
  *                 type: string
  *               password:
  *                 type: string
@@ -60,9 +60,6 @@ router.post('/login', authController.login);
  *                 items:
  *                   type: string
  *                 example: ["student"]
- *               status:
- *                 type: string
- *                 default: active
  *               full_name:
  *                 type: string
  *               dob:
