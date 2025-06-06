@@ -11,26 +11,22 @@ exports.login = async (req, res) => {
   const { email, password } = req.body;
 
   try {
-    // 👇 Find user by username and include their roles
     const user = await User.findOne({
       where: { email },
-      include: Role // many-to-many through user_roles
+      include: Role
     });
 
     if (!user) {
       return res.status(401).send('Invalid username or password');
     }
 
-    // 👇 Compare password hash
     const isMatch = bcrypt.compareSync(password, user.password);
     if (!isMatch) {
       return res.status(401).send('Invalid username or password');
     }
 
-    // 👇 Extract role names to include in JWT
     const roles = user.Roles.map(role => role.name);
 
-    // 👇 Create JWT token with roles
     const token = jwt.sign(
       {
         id: user.id,

@@ -30,6 +30,8 @@ const userRoutes = require('./routes/user.routes');
 const teacherRoutes = require('./routes/teacher.routes');
 const studentRoutes = require('./routes/student.routes');
 const courseRoutes = require('./routes/course.routes');
+const s3Routes = require('./routes/s3.routes');
+
 
 const sequelize = require('./config/sequelize');
 
@@ -38,13 +40,13 @@ app.use('/users', userRoutes);
 app.use('/teacher', teacherRoutes);
 app.use('/students', studentRoutes);
 app.use('/course', courseRoutes);
+app.use('/s3', s3Routes);
 
 // Sync DB if needed
 // sequelize.sync({ alter: true }).then(() => {
 //   console.log('Tables synced!');
 // });
 
-// ✅ FIXED: Start the server using `server.listen`, not `app.listen`
 server.listen(PORT, () => {
   console.log(`🚀 Server running at http://localhost:${PORT}`);
 });
