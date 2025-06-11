@@ -1,44 +1,89 @@
-<!-- public/webrtc.html -->
 <!DOCTYPE html>
 <html>
 <head>
-  <title>WebRTC Video Chat</title>
+  <title>WebRTC Video Chat (with TURN)</title>
   <style>
     video { width: 45%; margin: 10px; border: 1px solid #ccc; }
   </style>
 </head>
 <body>
-  <h2>WebRTC 1-on-1 Video Chat</h2>
+  <h2>WebRTC 1-on-1 Video Chat (TURN enabled)</h2>
   <video id="localVideo" autoplay playsinline muted></video>
   <video id="remoteVideo" autoplay playsinline></video>
 
   <script src="/socket.io/socket.io.js"></script>
   <script>
     const socket = io();
-    const room = 'demo-room';
+
+    // Dynamic room from URL param
+    const urlParams = new URLSearchParams(window.location.search);
+    const room = urlParams.get('room') || 'default-room';
+
     let localStream, peerConnection;
 
-    const config = { iceServers: [{ urls: 'stun:stun.l.google.com:19302' }] };
+    // Full ICE config with public STUN + free TURN (for testing)
+    const config = {
+      iceServers: [
+        { urls: 'stun:stun.l.google.com:19302' },
+        {
+          urls: 'turn:openrelay.metered.ca:80',
+          username: 'openrelayproject',
+          credential: 'openrelayproject'
+        },
+        {
+          urls: 'turn:openrelay.metered.ca:443',
+          username: 'openrelayproject',
+          credential: 'openrelayproject'
+        },
+        {
+          urls: 'turn:openrelay.metered.ca:443?transport=tcp',
+          username: 'openrelayproject',
+          credential: 'openrelayproject'
+        }
+      ]
+    };
+
     const localVideo = document.getElementById('localVideo');
     const remoteVideo = document.getElementById('remoteVideo');
 
     async function init() {
-      localStream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
-      localVideo.srcObject = localStream;
-      socket.emit('join', room);
+      try {
+        localStream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
+        console.log('📷 Local stream:', localStream);
+        localVideo.srcObject = localStream;
+        socket.emit('join', room);
+      } catch (err) {
+        alert('❌ Could not access camera/mic: ' + err.message);
+        console.error(err);
+      }
     }
 
     function createPeerConnection() {
       const pc = new RTCPeerConnection(config);
+
       pc.onicecandidate = e => {
-        if (e.candidate) socket.emit('ice-candidate', { candidate: e.candidate, room });
+        if (e.candidate) {
+          socket.emit('ice-candidate', { candidate: e.candidate, room });
+        }
       };
-      pc.ontrack = e => { remoteVideo.srcObject = e.streams[0]; };
-      localStream.getTracks().forEach(track => pc.addTrack(track, localStream));
+
+      pc.ontrack = e => {
+        console.log('🎧 Remote stream received:', e.streams[0]);
+        remoteVideo.srcObject = e.streams[0];
+        remoteVideo.play().catch(err => console.warn("🚫 Remote video autoplay error:", err));
+      };
+
+      localStream.getTracks().forEach(track => {
+        console.log(`Adding local track: ${track.kind}`);
+        pc.addTrack(track, localStream);
+      });
+
       return pc;
     }
 
+    // Socket.io event handlers
     socket.on('user-joined', async () => {
+      console.log('➡️ Another user joined, sending offer');
       peerConnection = createPeerConnection();
       const offer = await peerConnection.createOffer();
       await peerConnection.setLocalDescription(offer);
@@ -46,6 +91,7 @@
     });
 
     socket.on('offer', async (offer) => {
+      console.log('⬅️ Received offer, sending answer');
       peerConnection = createPeerConnection();
       await peerConnection.setRemoteDescription(offer);
       const answer = await peerConnection.createAnswer();
@@ -54,10 +100,12 @@
     });
 
     socket.on('answer', (answer) => {
+      console.log('⬅️ Received answer, setting remote description');
       peerConnection.setRemoteDescription(answer);
     });
 
     socket.on('ice-candidate', (candidate) => {
+      console.log('⬅️ Received ICE candidate');
       peerConnection.addIceCandidate(new RTCIceCandidate(candidate));
     });
 

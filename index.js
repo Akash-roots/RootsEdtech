@@ -31,6 +31,8 @@ const teacherRoutes = require('./routes/teacher.routes');
 const studentRoutes = require('./routes/student.routes');
 const courseRoutes = require('./routes/course.routes');
 const s3Routes = require('./routes/s3.routes');
+const livekitRoutes = require('./routes/livekit.routes');
+
 
 
 const sequelize = require('./config/sequelize');
@@ -41,6 +43,8 @@ app.use('/teacher', teacherRoutes);
 app.use('/students', studentRoutes);
 app.use('/course', courseRoutes);
 app.use('/s3', s3Routes);
+app.use('/api', livekitRoutes);
+
 
 // Sync DB if needed
 // sequelize.sync({ alter: true }).then(() => {
