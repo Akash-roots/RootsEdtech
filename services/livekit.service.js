@@ -1,7 +1,7 @@
 const { AccessToken }  = require('livekit-server-sdk');
 
 const API_KEY = 'devkey';
-const API_SECRET = 'secret';
+const API_SECRET = 'd2f38f98c0ba4b0199e8b9bbf7321e02abcf9f9b8318e5f2bb89e9df01d73e9a';
 
 
 exports.generateToken = async (req) => {
