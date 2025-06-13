@@ -6,3 +6,8 @@ exports.generateToken = async (req, res) => {
     
     res.json({ token });
 }
+
+exports.createRoom = async (req, res) => {
+    const room  = await livekiService.createRoom(req);
+    res.json(room);
+}
