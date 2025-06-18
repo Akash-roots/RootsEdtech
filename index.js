@@ -6,6 +6,10 @@ const http = require('http');
 const { Server } = require('socket.io');
 const { swaggerUi, specs } = require('./utils/swagger');
 const cors = require('cors');
+const jwt = require('jsonwebtoken');
+const sequelize = require('./config/sequelize');
+
+
 
 
 const PORT = process.env.PORT || 3000;
@@ -35,11 +39,10 @@ const livekitRoutes = require('./routes/livekit.routes');
 
 
 
-const sequelize = require('./config/sequelize');
 
 app.use('/auth', authRoutes);
 app.use('/users', userRoutes);
-app.use('/teacher', teacherRoutes);
+app.use('/teachers', teacherRoutes);
 app.use('/students', studentRoutes);
 app.use('/course', courseRoutes);
 app.use('/s3', s3Routes);
@@ -50,6 +53,23 @@ app.use('/api', livekitRoutes);
 // sequelize.sync({ alter: true }).then(() => {
 //   console.log('Tables synced!');
 // });
+
+
+server.on('upgrade', (request, socket, head) => {
+  const token = new URL(request.url, `http://${request.headers.host}`).searchParams.get('token');
+
+  if (!token) return socket.destroy();
+
+  try {
+    const payload = jwt.verify(token, process.env.JWT_SECRET);
+    wss.handleUpgrade(request, socket, head, (ws) => {
+      wss.emit('connection', ws, request, payload.id); // use payload.id as userId
+    });
+  } catch (err) {
+    socket.destroy();
+  }
+});
+
 
 server.listen(PORT, () => {
   console.log(`🚀 Server running at http://localhost:${PORT}`);

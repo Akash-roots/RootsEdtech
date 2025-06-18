@@ -4,10 +4,10 @@ const teacherController = require('../controllers/teacher.controller');
 const authenticateToken = require('../middleware/auth.middleware');
 
 
-router.post('/',authenticateToken, teacherController.createTeacher);
-router.get('/',authenticateToken, teacherController.getAllTeachers);
-router.get('/:id',authenticateToken, teacherController.getTeacherById);
-router.put('/:id',authenticateToken, teacherController.updateTeacher);
-router.delete('/:id',authenticateToken, teacherController.deleteTeacher);
+router.post('/', teacherController.createTeacher);
+router.get('/', teacherController.getAllTeachers);
+router.get('/:id', teacherController.getTeacherById);
+router.put('/:id', teacherController.updateTeacher);
+router.delete('/:id', teacherController.deleteTeacher);
 
 module.exports = router;
