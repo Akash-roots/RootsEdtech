@@ -8,6 +8,8 @@ const { swaggerUi, specs } = require('./utils/swagger');
 const cors = require('cors');
 const jwt = require('jsonwebtoken');
 const sequelize = require('./config/sequelize');
+const wss = require('./sockets/websocket'); // Make sure the path is correct
+
 
 
 
@@ -36,6 +38,8 @@ const studentRoutes = require('./routes/student.routes');
 const courseRoutes = require('./routes/course.routes');
 const s3Routes = require('./routes/s3.routes');
 const livekitRoutes = require('./routes/livekit.routes');
+const messagesRoutes = require('./routes/message.routes');
+const roomRoutes = require('./routes/room.routes')
 
 
 
@@ -47,14 +51,17 @@ app.use('/students', studentRoutes);
 app.use('/course', courseRoutes);
 app.use('/s3', s3Routes);
 app.use('/api', livekitRoutes);
+app.use('/messages', messagesRoutes);
+app.use('/room',roomRoutes);
 
 
-// Sync DB if needed
-// sequelize.sync({ alter: true }).then(() => {
-//   console.log('Tables synced!');
-// });
+// // Sync DB if needed
+sequelize.sync({ alter: true }).then(() => {
+  console.log('Tables synced!');
+});
 
 
+// ✅ Handle WebSocket upgrade with token authentication
 server.on('upgrade', (request, socket, head) => {
   const token = new URL(request.url, `http://${request.headers.host}`).searchParams.get('token');
 
@@ -66,9 +73,11 @@ server.on('upgrade', (request, socket, head) => {
       wss.emit('connection', ws, request, payload.id); // use payload.id as userId
     });
   } catch (err) {
+    console.error("WebSocket upgrade failed:", err.message);
     socket.destroy();
   }
 });
+
 
 
 server.listen(PORT, () => {

@@ -11,13 +11,19 @@ wss.on('connection', (ws, request, userId) => {
   ws.on('message', async (message) => {
     try {
       const data = JSON.parse(message);
-      const { toUserId, text } = data;
+      const { toUserId, text, roomId } = data;
+
+      if (!roomId) {
+        console.warn('Missing roomId. Cannot store message.');
+        return;
+      }
 
       const msgData = {
         sender_id: userId,
-        receiver_id: toUserId,
+        room_id: roomId,
         message: text,
-        timestamp: new Date(),
+        message_type: 'text',
+        created_at: new Date()
       };
 
       await ChatMessage.create(msgData);
@@ -27,7 +33,8 @@ wss.on('connection', (ws, request, userId) => {
         targetWs.send(JSON.stringify({
           from: userId,
           text,
-          timestamp: msgData.timestamp,
+          roomId,
+          timestamp: msgData.created_at,
         }));
       } else {
         console.warn(`User ${toUserId} is not connected.`);
@@ -37,6 +44,7 @@ wss.on('connection', (ws, request, userId) => {
       console.error('Invalid message', e);
     }
   });
+
 
   ws.on('close', () => {
     clients.delete(userId);

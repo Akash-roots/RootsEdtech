@@ -14,6 +14,7 @@ const Message = sequelize.define('Message', {
   },
   sender_id: {
     type: DataTypes.INTEGER,
+    allowNull: false,
     references: {
       model: User,
       key: 'id',
@@ -31,9 +32,16 @@ const Message = sequelize.define('Message', {
     type: DataTypes.DATE,
     defaultValue: DataTypes.NOW,
   },
+  // Optional future field
+  // is_read: {
+  //   type: DataTypes.BOOLEAN,
+  //   defaultValue: false,
+  // },
 }, {
   tableName: 'messages',
   timestamps: false,
 });
+
+Message.belongsTo(User, { foreignKey: 'sender_id', as: 'sender' });
 
 module.exports = Message;
