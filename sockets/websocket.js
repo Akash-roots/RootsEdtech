@@ -11,7 +11,7 @@ wss.on('connection', (ws, request, userId) => {
   ws.on('message', async (message) => {
     try {
       const data = JSON.parse(message);
-      const { toUserId, text, roomId } = data;
+      const { toUserId, text, roomId, fromUserId } = data;
 
       if (!roomId) {
         console.warn('Missing roomId. Cannot store message.');
@@ -23,6 +23,7 @@ wss.on('connection', (ws, request, userId) => {
         room_id: roomId,
         message: text,
         message_type: 'text',
+        receiver_id: toUserId,
         created_at: new Date()
       };
 

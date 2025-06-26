@@ -9,6 +9,9 @@ const cors = require('cors');
 const jwt = require('jsonwebtoken');
 const sequelize = require('./config/sequelize');
 const wss = require('./sockets/websocket'); // Make sure the path is correct
+const Class = require('./models/Class');
+const Student = require('./models/Student');
+const ClassStudent = require('./models/ClassStudent');
 
 
 
@@ -40,6 +43,8 @@ const s3Routes = require('./routes/s3.routes');
 const livekitRoutes = require('./routes/livekit.routes');
 const messagesRoutes = require('./routes/message.routes');
 const roomRoutes = require('./routes/room.routes')
+const classRoutes = require('./routes/class.routes');
+
 
 
 
@@ -53,12 +58,28 @@ app.use('/s3', s3Routes);
 app.use('/api', livekitRoutes);
 app.use('/messages', messagesRoutes);
 app.use('/room',roomRoutes);
+app.use('/classes', classRoutes);
+
 
 
 // // Sync DB if needed
 sequelize.sync({ alter: true }).then(() => {
   console.log('Tables synced!');
 });
+
+
+// Associations
+Class.belongsToMany(Student, {
+  through: ClassStudent,
+  foreignKey: 'class_id',
+  otherKey: 'student_id',
+});
+Student.belongsToMany(Class, {
+  through: ClassStudent,
+  foreignKey: 'student_id',
+  otherKey: 'class_id',
+});
+
 
 
 // ✅ Handle WebSocket upgrade with token authentication

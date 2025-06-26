@@ -11,10 +11,6 @@ const Teacher = sequelize.define('Teacher', {
   user_id: {
     type: DataTypes.INTEGER,
     allowNull: false,
-    references: {
-      model: User, // 👈 Use model, not string
-      key: 'id'
-    },
     onDelete: 'CASCADE'
   },
   full_name: {
@@ -44,6 +40,6 @@ const Teacher = sequelize.define('Teacher', {
   updatedAt: false
 });
 
-Teacher.belongsTo(User, { foreignKey: 'user_id' });
+// Teacher.belongsTo(User, { foreignKey: 'user_id', as: 'user' });
 
 module.exports = Teacher;

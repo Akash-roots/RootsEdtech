@@ -20,6 +20,14 @@ const Message = sequelize.define('Message', {
       key: 'id',
     },
   },
+  receiver_id: {
+    type: DataTypes.INTEGER,
+    allowNull: false,
+    references: {
+      model: User,
+      key: 'id',
+    },
+  },
   message: {
     type: DataTypes.TEXT,
     allowNull: false,
@@ -43,5 +51,6 @@ const Message = sequelize.define('Message', {
 });
 
 Message.belongsTo(User, { foreignKey: 'sender_id', as: 'sender' });
+Message.belongsTo(User, { foreignKey: 'receiver_id', as: 'receiver' });
 
 module.exports = Message;
