@@ -11,6 +11,9 @@ wss.on('connection', (ws, request, userId) => {
   ws.on('message', async (message) => {
     try {
       const data = JSON.parse(message);
+      console.log("data", data);
+      
+
       const { toUserId, text, roomId, fromUserId } = data;
 
       if (!roomId) {
@@ -35,7 +38,7 @@ wss.on('connection', (ws, request, userId) => {
           from: userId,
           text,
           roomId,
-          timestamp: msgData.created_at,
+          created_at: msgData.created_at,
         }));
       } else {
         console.warn(`User ${toUserId} is not connected.`);
