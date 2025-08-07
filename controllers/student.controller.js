@@ -16,6 +16,12 @@ exports.getStudentById = async (req, res) => {
   else res.status(404).json({ message: 'Student not found' });
 };
 
+exports.getStudentByUserId = async (req, res) => {
+  const student = await studentService.getStudentByUserId(req.params.userId);
+  if (student) res.json(student);
+  else res.status(404).json({ message: 'Student not found' });
+};
+
 exports.updateStudent = async (req, res) => {
   await studentService.updateStudent(req.params.id, req.body);
   res.json({ message: 'Student updated' });

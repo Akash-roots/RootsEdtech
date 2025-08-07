@@ -24,5 +24,7 @@ exports.registerStudent = async (data) => {
 exports.createStudent = (data) => Student.create(data);
 exports.getAllStudents = () => Student.findAll();
 exports.getStudentById = (id) => Student.findByPk(id);
+exports.getStudentByUserId = (userId) =>
+  Student.findOne({ where: { user_id: userId } });
 exports.updateStudent = (id, data) => Student.update(data, { where: { userId: id } });
 exports.deleteStudent = (id) => Student.destroy({ where: { userId: id } });

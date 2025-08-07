@@ -5,6 +5,7 @@ const authenticateToken = require('../middleware/auth.middleware');
 
 router.post('/',authenticateToken, studentController.createStudent);
 router.get('/',authenticateToken, studentController.getAllStudents);
+router.get('/user/:userId', authenticateToken, studentController.getStudentByUserId);
 router.get('/:id',authenticateToken, studentController.getStudentById);
 router.put('/:id',authenticateToken, studentController.updateStudent);
 router.delete('/:id',authenticateToken, studentController.deleteStudent);

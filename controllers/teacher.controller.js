@@ -16,6 +16,12 @@ exports.getTeacherById = async (req, res) => {
   else res.status(404).json({ message: 'Teacher not found' });
 };
 
+exports.getTeacherByUserId = async (req, res) => {
+  const teacher = await teacherService.getTeacherByUserId(req.params.userId);
+  if (teacher) res.json(teacher);
+  else res.status(404).json({ message: 'Teacher not found' });
+};
+
 exports.updateTeacher = async (req, res) => {
   await teacherService.updateTeacher(req.params.id, req.body);
   res.json({ message: 'Teacher updated' });

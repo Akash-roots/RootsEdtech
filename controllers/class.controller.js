@@ -6,11 +6,29 @@ const User = require('../models/User');
 
 exports.createClass = async (req, res) => {
   try {
-    const { name } = req.body;
+    const {
+      name,
+      type,
+      title,
+      datetime,
+      duration,
+      subject,
+      pricing,
+      max_participants,
+      recurrence,
+    } = req.body;
     const teacherId = req.user.id;
 
     const newClass = await Class.create({
-      name,
+      name: title || name,
+      type,
+      title,
+      datetime,
+      duration,
+      subject,
+      pricing,
+      max_participants,
+      recurrence,
       teacher_id: teacherId,
     });
 
@@ -154,6 +172,76 @@ exports.getStudentClasses = async (req, res) => {
   } catch (err) {
     console.error('Failed to get student classes:', err);
     res.status(500).json({ error: 'Internal server error' });
+  }
+};
+
+exports.getClassById = async (req, res) => {
+  try {
+    const { classId } = req.params;
+    const cls = await Class.findByPk(classId);
+    if (!cls) {
+      return res.status(404).json({ error: 'Class not found' });
+    }
+    res.json(cls);
+  } catch (err) {
+    console.error('Get class details error:', err);
+    res.status(500).json({ error: 'Failed to fetch class details' });
+  }
+};
+
+exports.startClass = async (req, res) => {
+  try {
+    const { classId } = req.params;
+    const teacherId = req.user.id;
+    const cls = await Class.findOne({ where: { id: classId, teacher_id: teacherId } });
+    if (!cls) {
+      return res.status(404).json({ error: 'Class not found' });
+    }
+
+    if (cls.status === 'running') {
+      return res.json({ room_id: cls.room_id, room_password: cls.room_password, status: cls.status });
+    }
+
+    const livekit = require('./livekit.controller');
+    const { room_id, room_password } = livekit.createRoomInternal();
+
+    cls.room_id = room_id;
+    cls.room_password = room_password;
+    cls.status = 'running';
+    await cls.save();
+
+    res.json({ room_id, room_password, status: 'running' });
+  } catch (err) {
+    console.error('Start class error:', err);
+    res.status(500).json({ error: 'Failed to start class' });
+  }
+};
+
+exports.endClass = async (req, res) => {
+  try {
+    const { classId } = req.params;
+    const teacherId = req.user.id;
+    const cls = await Class.findOne({
+      where: { id: classId, teacher_id: teacherId },
+    });
+    if (!cls) {
+      return res.status(404).json({ error: 'Class not found' });
+    }
+
+    const livekit = require('./livekit.controller');
+    if (cls.room_id && livekit.rooms[cls.room_id]) {
+      delete livekit.rooms[cls.room_id];
+    }
+
+    cls.status = 'ended';
+    cls.room_id = null;
+    cls.room_password = null;
+    await cls.save();
+
+    res.json({ message: 'Class ended' });
+  } catch (err) {
+    console.error('End class error:', err);
+    res.status(500).json({ error: 'Failed to end class' });
   }
 };
 

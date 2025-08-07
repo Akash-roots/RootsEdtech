@@ -14,9 +14,6 @@ const Student = require('./models/Student');
 const ClassStudent = require('./models/ClassStudent');
 
 
-
-
-
 const PORT = process.env.PORT || 3000;
 const server = http.createServer(app); // Create HTTP server
 const io = new Server(server, { cors: { origin: "*" } }); // Attach Socket.io
@@ -24,6 +21,8 @@ app.use(cors()); // 🔓 Allow all origins (for local dev)
 
 // Serve static files (like webrtc.html)
 app.use(express.static(path.join(__dirname, 'public')));
+// Expose uploaded files
+app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 
 // Load signaling logic
 require('./sockets/webrtcSocket')(io); // Load WebRTC socket handlers
@@ -44,10 +43,8 @@ const livekitRoutes = require('./routes/livekit.routes');
 const messagesRoutes = require('./routes/message.routes');
 const roomRoutes = require('./routes/room.routes')
 const classRoutes = require('./routes/class.routes');
-
-
-
-
+const ivcRoutes = require('./routes/ivc.routes');
+const voiceRoutes = require('./routes/voice.routes');
 
 app.use('/auth', authRoutes);
 app.use('/users', userRoutes);
@@ -59,8 +56,8 @@ app.use('/api', livekitRoutes);
 app.use('/messages', messagesRoutes);
 app.use('/room',roomRoutes);
 app.use('/classes', classRoutes);
-
-
+app.use('/ivc', ivcRoutes);
+app.use('/voices', voiceRoutes);
 
 // // Sync DB if needed
 sequelize.sync({ alter: true }).then(() => {

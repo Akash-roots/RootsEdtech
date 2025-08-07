@@ -6,6 +6,7 @@ const authenticateToken = require('../middleware/auth.middleware');
 
 router.post('/', teacherController.createTeacher);
 router.get('/', teacherController.getAllTeachers);
+router.get('/user/:userId', teacherController.getTeacherByUserId);
 router.get('/:id', teacherController.getTeacherById);
 router.put('/:id', teacherController.updateTeacher);
 router.delete('/:id', teacherController.deleteTeacher);
