@@ -42,7 +42,7 @@ const s3Routes = require('./routes/s3.routes');
 const livekitRoutes = require('./routes/livekit.routes');
 const messagesRoutes = require('./routes/message.routes');
 const roomRoutes = require('./routes/room.routes')
-const classRoutes = require('./routes/class.routes');
+const classRoutes = require('./routes/class.routes.js');
 const ivcRoutes = require('./routes/ivc.routes');
 const voiceRoutes = require('./routes/voice.routes');
 

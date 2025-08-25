@@ -1,8 +1,70 @@
+
+const { Op } = require('sequelize');
 const Class = require('../models/Class');
+const ClassSession = require('../models/ClassSession');
 const ClassStudent = require('../models/ClassStudent');
 const Student = require('../models/Student');
 const Teacher = require('../models/Teacher');
 const User = require('../models/User');
+const { RRule } = require('rrule');
+
+
+
+async function createSessionsForClass(cls, datetime, duration, recurrenceRule) {
+  const sessions = [];
+
+  if (!recurrenceRule) {
+    // one-off session
+    const start = new Date(datetime);
+    const end = new Date(start.getTime() + duration * 60000);
+
+    const s = await ClassSession.create({
+      class_id: cls.id,
+      start_time: start,
+      end_time: end,
+    });
+    sessions.push(s);
+  } else {
+    // TODO: expand recurrence rule with rrule lib
+    // Example: generate next 5 occurrences weekly
+    const { RRule } = require('rrule');
+
+    const rule = RRule.fromString(recurrenceRule);
+    const dates = rule.all().slice(0, 10); // limit expansion
+
+    for (const d of dates) {
+      const start = d;
+      const end = new Date(start.getTime() + duration * 60000);
+      const s = await ClassSession.create({
+        class_id: cls.id,
+        start_time: start,
+        end_time: end,
+      });
+      sessions.push(s);
+    }
+  }
+
+  return sessions;
+}
+
+exports.getUpcomingSessions = async (req, res) => {
+  try {
+    const now = new Date();
+    const sessions = await ClassSession.findAll({
+      where: {
+        start_time: { [Op.gt]: now },
+        status: 'scheduled',
+      },
+      include: [{ model: Class, as: 'class' }],
+      order: [['start_time', 'ASC']],
+    });
+    res.json(sessions);
+  } catch (err) {
+    console.error('Get sessions error:', err);
+    res.status(500).json({ error: 'Failed to fetch sessions' });
+  }
+};
+
 
 exports.createClass = async (req, res) => {
   try {
@@ -10,34 +72,38 @@ exports.createClass = async (req, res) => {
       name,
       type,
       title,
-      datetime,
-      duration,
       subject,
       pricing,
       max_participants,
-      recurrence,
+      datetime,
+      duration,
+      recurrence_rule,
+      timezone,
     } = req.body;
     const teacherId = req.user.id;
 
-    const newClass = await Class.create({
+    const cls = await Class.create({
       name: title || name,
       type,
       title,
-      datetime,
-      duration,
       subject,
       pricing,
       max_participants,
-      recurrence,
+      recurrence_rule,
+      timezone,
       teacher_id: teacherId,
     });
 
-    res.status(201).json(newClass);
+    // also generate session(s)
+    const sessions = await createSessionsForClass(cls, datetime, duration, recurrence_rule);
+
+    res.status(201).json({ class: cls, sessions });
   } catch (err) {
     console.error('Create class error:', err);
     res.status(500).json({ error: 'Failed to create class' });
   }
 };
+
 
 exports.getMyClasses = async (req, res) => {
   try {
@@ -128,6 +194,37 @@ exports.addStudentToClass = async (req, res) => {
   } catch (err) {
     console.error(err);
     res.status(500).json({ error: 'Failed to add student' });
+  }
+};
+
+// Remove a student from a class
+exports.removeStudentFromClass = async (req, res) => {
+  const { classId } = req.params;
+  const { studentId } = req.body;
+
+  try {
+    // Find the student by user_id or id
+    let student = await Student.findOne({ where: { user_id: studentId } });
+    if (!student) {
+      student = await Student.findByPk(studentId);
+    }
+    if (!student) {
+      return res.status(404).json({ error: 'Student not found' });
+    }
+
+    // Remove the student from the class
+    const deleted = await ClassStudent.destroy({
+      where: { class_id: classId, student_id: student.id }
+    });
+
+    if (deleted) {
+      return res.json({ message: 'Student removed from class' });
+    } else {
+      return res.status(404).json({ error: 'Student not found in class' });
+    }
+  } catch (err) {
+    console.error('Remove student error:', err);
+    res.status(500).json({ error: 'Failed to remove student from class' });
   }
 };
 
