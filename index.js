@@ -45,7 +45,10 @@ const roomRoutes = require('./routes/room.routes')
 const classRoutes = require('./routes/class.routes.js');
 const ivcRoutes = require('./routes/ivc.routes');
 const voiceRoutes = require('./routes/voice.routes');
+const notesRoutes = require('./routes/notes.routes.js');
 
+
+app.use('/api/notes', notesRoutes);
 app.use('/auth', authRoutes);
 app.use('/users', userRoutes);
 app.use('/teachers', teacherRoutes);
