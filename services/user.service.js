@@ -1,6 +1,8 @@
 const bcrypt = require('bcryptjs');
 const User = require('../models/User');
 const Role = require('../models/Role');
+const Teacher = require('../models/Teacher');
+const Student = require('../models/Student');
 
 exports.createUser = async ({ email, password, status = 'active', roles }) => {
   const hashedPassword = bcrypt.hashSync(password, 10);
@@ -24,8 +26,15 @@ exports.createUser = async ({ email, password, status = 'active', roles }) => {
 
 exports.getAllUsers = () => User.findAll({ include: Role });
 
-exports.getUserById = (id) => User.findByPk(id, { include: Role });
-
+exports.getUserById = (id) => {
+  return User.findByPk(id, {
+    include: [
+      { model: Role }, // many-to-many roles
+      { model: Student, as: 'studentProfile', required: false },
+      { model: Teacher, as: 'teacherProfile', required: false },
+    ],
+  });
+};
 exports.updateUser = async (id, data) => {
   const { roles, ...userData } = data;
 

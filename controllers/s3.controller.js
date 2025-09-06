@@ -1,7 +1,7 @@
 const fs = require('fs');
 const path = require('path');
 const { uploadFile, getSignedDownloadUrl, deleteFile, listFiles } = require('../utils/s3');
-const { S3Client, PutObjectCommand, ListObjectsV2Command } = require('@aws-sdk/client-s3');
+const { S3Client, PutObjectCommand, ListObjectsV2Command, GetObjectCommand } = require('@aws-sdk/client-s3');
 const { getSignedUrl } = require('@aws-sdk/s3-request-presigner');
 
 const REGION = process.env.AWS_REGION || 'ap-southeast-1';
